@@ -1,6 +1,10 @@
-using QuantumNestedSampling
-using Test
+using TestItems
+using LinearAlgebra
+using Revise
 
-@testset "QuantumNestedSampling.jl" begin
-    # Write your tests here.
+module QuantumNestedSampling
+    asserting() = true
 end
+
+include("test_linear-algebra.jl")
+include("test_constraints.jl")
