@@ -3,7 +3,17 @@ uuid = "24b144da-d749-4b8e-8134-f9f321f270fb"
 authors = ["Christopher David White <christopher.d.white117.ctr@us.navy.mil> and contributors"]
 version = "1.0.0-DEV"
 
+[deps]
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+TestItems = "1c621080-faea-4a02-84b6-bbd5e436b8fe"
+
 [compat]
+LinearAlgebra = "1.11.0"
+Random = "1.11.0"
+StaticArrays = "1.9.12"
+TestItems = "1.0.0"
 julia = "1.6.7"
 
 [extras]

@@ -149,14 +149,13 @@ end
 
 function gmc(;
     constraints :: Array{Constraint},
-    cutoffs :: Array{<:Real},
     dt      = 2.0 ^ -10,
     num_slaloms = 8,
     stepcount_per_slalom = 128,
     effort_limit = 10^5
     )
 
-    function gmc_step(u)
+    function gmc_step(cutoffs :: Array{<:Real}, u)
         u = ComplexF64.(u)
         dim = length(u)
         total_attempt_count = 0
