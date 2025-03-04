@@ -8,3 +8,4 @@ end
 
 include("test_linear-algebra.jl")
 include("test_constraints.jl")
+include("test_galilean-monte-carlo.jl")
