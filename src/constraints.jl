@@ -94,7 +94,7 @@ function fast_quart(H)
         HmEu!(s, H,s2,E) # (H - E)^3 u
         HmEu!(s2, H,s,E) # (H - E)^4 u
 
-        return u'*s2
+        return real(u'*s2)
     end
 end
 
@@ -150,5 +150,5 @@ function quart_constraint(H)
     # OK this is really playing with fire 
     # I'm assuming the list comprehension using fast_effective doesn't get parallelized
     # because all the calls are using the same scratch space s
-    Constraint(u -> quart(H,u),fast_gradquart(H), quart_expanded, [H,H^2,H^3,H^4], (data,u,v) -> [fast_effective(Hn, u,v,s) for Hn in data])
+    Constraint(fast_quart(H),fast_gradquart(H), quart_expanded, [H,H^2,H^3,H^4], (data,u,v) -> [fast_effective(Hn, u,v,s) for Hn in data])
 end
