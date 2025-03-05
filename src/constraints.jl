@@ -9,6 +9,7 @@ export effective
 export quart 
 export quart_expanded
 export fast_effective
+export fast_quart
 
 # I've chosen not to store the constraint *value* here with the constraint *function*.
 # Reason is that that's somehow conceptually separate: it's going to change a whole bunch.
@@ -76,6 +77,25 @@ function quart(H,u)
     @assert norm(u) ≈ 1
     E = u'*H*u 
     real(u'*(H-E*LinearAlgebra.I)^4*u)
+end
+
+# could probably make this faster by playing adjoint games
+function fast_quart(H)
+    dim = size(H,1)
+    Hu = zeros(ComplexF64, dim)
+    s  = zeros(ComplexF64, dim)
+    s2 = zeros(ComplexF64, dim)
+
+    function fast_quart_inner(u)
+        mul!(Hu,H,u)
+        E = u'*Hu
+        HmEu!(s, H,u,E) # (H - E)u
+        HmEu!(s2, H,s,E) # (H - E)^2 u
+        HmEu!(s, H,s2,E) # (H - E)^3 u
+        HmEu!(s2, H,s,E) # (H - E)^4 u
+
+        return u'*s2
+    end
 end
 
 function gradquart(H)

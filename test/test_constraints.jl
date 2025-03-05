@@ -112,3 +112,12 @@ end
         @test abs( quart(H,u) - quart_expanded((H,H^2, H^3,H^4),u)) < 1e-10
     end
 end
+
+@testitem "fast_quart" begin
+    dim = 10
+    for r = 1:10
+        H = GOE(dim)
+        u = sample_haar(dim)
+        @test abs( quart(H,u) - fast_quart(H)(u) ) < 1e-10
+    end
+end
