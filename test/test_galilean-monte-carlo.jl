@@ -25,15 +25,23 @@
 
     @test abs( CES.subspace_constraint_function(CES.subspace_data,SVector(1,0)) - Eu ) < 1e-10
     @test abs( CQS.subspace_constraint_function(CQS.subspace_data,SVector(1,0)) - Qu ) < 1e-10
-   
-    unew_proj, vnew_proj, stepcount, constraint_satisfied = jog(constraints= [CES, CQS], cutoffs = [Inf,Inf], dt = 0.125, maxsteps = 10)
+
+    constraints = [CES, CQS]
+
+    unew_proj, vnew_proj, stepcount, constraint_satisfied = jog( 
+                                                                 subspace_constraint_functions = [c.subspace_constraint_function for c in constraints],
+                                                                 subspace_data                 = [c.subspace_data                for c in constraints];
+                                                                 cutoffs = [Inf,Inf], dt = 0.125, maxsteps = 10)
 
     unew = u*unew_proj[1] + v * unew_proj[2]
     vnew = u*vnew_proj[1] + v * vnew_proj[2]
 
     CES = SubspaceConstraint(CE.subspace_constraint_function, CE.subspace_data_reduction(CE.data,unew,vnew))
     CQS = SubspaceConstraint(CQ.subspace_constraint_function, CQ.subspace_data_reduction(CQ.data,unew,vnew))
-    uback_proj, vback_proj, stepcount, constraint_satisfied = jog(constraints= [CES, CQS], cutoffs = [Inf,Inf], dt = -0.125, maxsteps = 10)
+    uback_proj, vback_proj, stepcount, constraint_satisfied = jog(
+                                                                 subspace_constraint_functions = [c.subspace_constraint_function for c in constraints],
+                                                                 subspace_data                 = [c.subspace_data                for c in constraints];
+                                                                 cutoffs = [Inf,Inf], dt = -0.125, maxsteps = 10)
 
     uback = unew*uback_proj[1] + vnew * uback_proj[2]
     vback = unew*vback_proj[1] + vnew * vback_proj[2]

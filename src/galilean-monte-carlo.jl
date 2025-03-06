@@ -4,8 +4,8 @@ export gmc
 
 struct EffortLimitException <: Exception end 
 
-function jog(; constraints :: Array{SubspaceConstraint}, cutoffs :: Array{<:Real}, dt, maxsteps)
-    Nconstraint = length(constraints)
+function jog(; subspace_constraint_functions :: Array{<:Function}, subspace_data :: Array, cutoffs :: Array{<:Real}, dt, maxsteps)
+    Nconstraint = length(subspace_constraint_functions)
     @cassert length(cutoffs) == Nconstraint
     @cassert dt < π
 
@@ -16,16 +16,14 @@ function jog(; constraints :: Array{SubspaceConstraint}, cutoffs :: Array{<:Real
 
     x = MVector{2,Float64}([1;0])
 
-    cc = zip(constraints, cutoffs)
     while true
         t :: Float64
         x = SVector(cos(t),sin(t))
         stepcount += 1
 
         for j = 1:Nconstraint
-            c = constraints[j]
             cutoff = cutoffs[j]
-            constraint_satisfied[j] = c.subspace_constraint_function(c.subspace_data, x) < cutoff 
+            constraint_satisfied[j] = subspace_constraint_functions[j](subspace_data[j], x) < cutoff 
             #@show c.subspace_constraint_function(c.subspace_data, x), constraint_satisfied[j]
         end
         
@@ -98,7 +96,9 @@ function slalom(;constraints :: Array{Constraint},
         # so not bad compert to all the gemv's
         # but maybe it'll get in the compiler's way?
         subspace_constraints = [SubspaceConstraint(C.subspace_constraint_function, C.subspace_data_reduction(C.data,u,v)) for C in constraints]
-        u2e, v2e, jog_stepcount, constraints_satisfied = jog(constraints = subspace_constraints; cutoffs, maxsteps = total_steps - stepcount, dt)
+        u2e, v2e, jog_stepcount, constraints_satisfied = jog(subspace_constraint_functions = [c.subspace_constraint_function for c in subspace_constraints],
+                                                             subspace_data                 = [c.subspace_data                for c in subspace_constraints],
+                                                            ; cutoffs, maxsteps = total_steps - stepcount, dt)
 
         @. unew = u2e[1]*u + u2e[2]*v
         @. vnew = v2e[1]*u + v2e[2]*v
@@ -159,15 +159,14 @@ function gmc(;
         u = ComplexF64.(u)
         dim = length(u)
         total_attempt_count = 0
+        v = zeros(ComplexF64, dim)
         for slalom_count = 1:num_slaloms
             attempt_count = 0
             while true
-
-                v = sample_haar(dim)
-                @assert norm(u) ≈ 1
-                project_out!(u,v)
-                @assert abs(u'*v) < 1e-10
-                v /= norm(v)
+                @cassert norm(u) ≈ 1
+                sample_haar_perp!(u,v)
+                @cassert norm(v) ≈ 1
+                @cassert abs(u'*v) < 1e-10
 
                 uproposed,vproposed, constraints_satisfied, reflections = slalom(;constraints,cutoffs,dt,total_steps=stepcount_per_slalom,u,v,)
 

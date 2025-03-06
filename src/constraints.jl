@@ -52,10 +52,17 @@ function apply_cx_gradient(grad, h)
     2*real(grad'*h)
 end
 
-function energy(H,u) 
-    E = u'*H*u
-    @cassert E |> imag |> abs < 1e-10
-    return real(E)
+energy(H,u) = real(u'*H*u)
+    
+function energy(H) 
+    dim = size(H,1)
+    Hu = zeros(ComplexF64, dim)
+    function energy_inner(u)
+        mul!(Hu,H,u)
+        E = u'*Hu |> real
+        return E 
+    end
+    return energy_inner
 end
 
 function energy_gradient(H)
@@ -64,7 +71,7 @@ function energy_gradient(H)
 end
 
 function energy_constraint(H)
-    constraint_function = u -> energy(H,u) 
+    constraint_function = energy(H)
     gradient_function = energy_gradient(H) 
     subspace_constraint_function = (data,u) -> energy(data,u) 
     data = H
