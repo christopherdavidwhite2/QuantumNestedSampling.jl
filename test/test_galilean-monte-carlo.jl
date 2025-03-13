@@ -10,8 +10,8 @@
     CE = energy_constraint(H)
     CQ = quart_constraint(H)
 
-    u = sample_haar(dim)
-    v = sample_haar(dim)
+    u = sample_haar(Float64,dim)
+    v = sample_haar(Float64,dim)
     project_out!(u,v)
     v /= norm(v)
 
@@ -57,16 +57,14 @@ end
     d, Ueig = eigen(H)
 
     constraints = [energy_constraint(H), quart_constraint(H)]
-    cutoffs = [-1.4, 0.1]
+    cutoffs = [-0.7; 0.1]
 
     j = last_eigenindex_below(d, cutoffs[1]) - 10
     u = ComplexF64.(Ueig[:,j])
 
     nsteps = 128
     for dt = (2.0 .^ (0:-1:-20)) 
-        v = sample_haar(dim)
-        project_out!(u,v)
-        v /= norm(v)
+        v = sample_haar_perp(u)
         unew,vnew,constraints_satisfied, reflections = slalom(;constraints,cutoffs,dt,total_steps = nsteps,u,v)
 
         # We report whether the constraints are satisfied.
@@ -98,10 +96,10 @@ end
     d, Ueig = eigen(H)
 
     constraints = [energy_constraint(H), quart_constraint(H)]
-    cutoffs = [-1.4, 0.1]
+    cutoffs = [-0.7, 0.1]
 
     j = last_eigenindex_below(d, cutoffs[1]) - 10
-    u = ComplexF64.(Ueig[:,j])
+    u = Ueig[:,j]
 
     gmc(;constraints,dt=2.0 ^ -20,num_slaloms=2)(cutoffs, u)
 end
