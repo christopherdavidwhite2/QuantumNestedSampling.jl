@@ -45,6 +45,6 @@ function GOE(dim :: Int)
     H = randn(dim,dim)
     H += H'
     H .-= tr(H)/dim
-    H /= sqrt(dim)
+    H /= (2*sqrt(dim))
     return H
 end
