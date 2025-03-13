@@ -88,11 +88,11 @@ end
     using LinearAlgebra
 
     dim = 10
-    s = Array{ComplexF64}(undef, dim)
+    s = Array{Float64}(undef, dim)
     for r = 1:10
         H = GOE(10)
-        u = sample_haar(dim)
-        v = sample_haar(dim)
+        u = sample_haar(Float64,dim)
+        v = sample_haar(Float64,dim)
         project_out!(u,v)
         v /= norm(v)
 
@@ -117,7 +117,7 @@ end
     dim = 10
     for r = 1:10
         H = GOE(dim)
-        u = sample_haar(dim)
+        u = sample_haar(Float64,dim)
         @test abs( quart(H,u) - fast_quart(H)(u) ) < 1e-10
     end
 end

@@ -2,14 +2,20 @@ export GOE
 export sample_haar, sample_haar!
 export sample_haar_perp, sample_haar_perp!
 
+function sample_haar(::Type{T}, dim :: Int) where T <: Number
+    ψ = randn(T,dim) / sqrt(dim)
+    ψ /= norm(ψ)
+    return ψ
+end
+
 function sample_haar(dim :: Int)
     ψ = randn(ComplexF64,dim) / sqrt(dim)
     ψ /= norm(ψ)
     return ψ
 end
 
-function sample_haar!(v :: Vector{ComplexF64})
-    @. v = randn(ComplexF64)
+function sample_haar!(v :: Vector)
+    @. v = randn(eltype(v))
     nv = norm(v)
     v ./= nv
     return nothing
@@ -18,14 +24,14 @@ end
 function sample_haar_perp(u :: Vector)
     u /= norm(u)
 
-    v = u |> length |> sample_haar
+    v = sample_haar(eltype(u), length(u))
     v -= u*(u'*v)
     v /= norm(v)
 
     return v
 end
 
-function sample_haar_perp!(u :: Vector, v :: Vector{ComplexF64})
+function sample_haar_perp!(u :: Vector{T}, v :: Vector{T}) where T <: Number
     @cassert abs(norm(u) - 1) < 1e-10
     sample_haar!(v)
     ovlp = u'*v
