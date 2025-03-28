@@ -1,0 +1,67 @@
+export nested_sampling
+export Xlinstep, Xlogstep, partition, heatcapacity, energy
+
+function nested_sampling(EC :: Constraint, cutoffs :: Array{Float64}, θ :: Vector, resampler :: Function;steps :: Int=Int(1e3) )
+    nlive = length(θ)
+    E = EC.constraint_function.(θ)
+    Estar = zeros(steps)
+    θstar = Array{eltype(θ)}(undef, steps)
+
+    for i = 1:steps
+        jstar = argmax(E)
+        Estar[i] = E[jstar]
+        θstar[i] = θ[jstar]
+
+        new_start = rand( setdiff(1:nlive, jstar) )
+        θ[jstar] = resampler(Estar[i:i] ∪ cutoffs, θ[new_start] ) 
+        E[jstar] = EC.constraint_function(θ[jstar])
+    end
+
+    return Estar, θstar, θ
+end
+
+function nested_sampling(H; nlive = 32, steps = 100, resampler_kwargs...)
+    dim = size(H,1)
+    @assert size(H,1) == size(H,2)
+    cutoffs = Float64[]
+    EC = energy_constraint(H)
+
+    θ = [sample_haar(dim) for _ = 1:nlive]
+    resampler = gmc(constraints = [EC];resampler_kwargs...)
+    return nested_sampling(EC,cutoffs,θ,resampler;steps)
+end
+
+
+
+#############################################################################
+############## Postprocessing 
+
+# `t`` of the review
+Xlogstep(nlive) = 1 - 1/nlive
+# `w` of the review
+function Xlinstep(nlive,i)
+    t = Xlogstep(nlive)
+    return t^(i-1)*(1- t^2)/2
+end
+
+function partition(Estar, nlive)
+    w = Xlinstep.(nlive, 1:length(Estar))
+    β -> sum(w .* exp.(-β*Estar))
+end
+
+function energy(Estar , Z :: Function, nlive :: Int)
+    w = Xlinstep.(nlive, 1:length(Estar))
+    β -> sum(w .* Estar.*exp.(-β*Estar)) / Z(β)
+end
+
+function heatcapacity(Estar , Z :: Function, E :: Function, nlive :: Int)
+    w = Xlinstep.(nlive, 1:length(Estar))
+    β -> (sum(β^2 * w .* Estar.^2 .*exp.(-β*Estar)) / Z(β)) .- E(β)^2
+end
+
+#=
+function energyfunction(Estar, nlive)
+    logZ = logpartition(Estar, nlive)
+    return β -> -logZ'(β)
+end
+=#
