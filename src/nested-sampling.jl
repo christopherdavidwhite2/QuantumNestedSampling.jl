@@ -1,7 +1,7 @@
 export nested_sampling
 export Xlinstep, Xlogstep, partition, heatcapacity, energy
 
-function nested_sampling(EC :: Constraint, cutoffs :: Array{Float64}, θ :: Vector, resampler :: Function;steps :: Int=Int(1e3) )
+function nested_sampling(EC :: Constraint, cutoffs :: Array{Float64}, θ :: Vector, resampler :: Function;steps :: Int=Int(1e3),verbose=false )
     nlive = length(θ)
     E = EC.constraint_function.(θ)
     Estar = zeros(steps)
@@ -12,10 +12,12 @@ function nested_sampling(EC :: Constraint, cutoffs :: Array{Float64}, θ :: Vect
         Estar[i] = E[jstar]
         θstar[i] = θ[jstar]
 
+        if verbose @show i,Estar[i]; flush(stdout) end
+
         new_start = rand( setdiff(1:nlive, jstar) )
         θ[jstar] = resampler(Estar[i:i] ∪ cutoffs, θ[new_start] ) 
         E[jstar] = EC.constraint_function(θ[jstar])
-    end
+        end
 
     return Estar, θstar, θ
 end
