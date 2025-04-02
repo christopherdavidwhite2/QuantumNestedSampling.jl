@@ -1,6 +1,7 @@
 export jog
 export slalom
 export gmc
+export probe_for_dt
 
 struct EffortLimitException <: Exception end 
 
@@ -150,14 +151,31 @@ function slalom(;constraints :: Array{Constraint},
     return u, v, constraints_satisfied, reflections
 end
 
+function probe_for_dt(;θ, constraints,cutoffs, dt,slalom_pathlength,kwargs...)
+    while true
+        constraints_satisfied, reflections = [slalom(;u,v = sample_haar_perp(u),constraints,cutoffs,total_steps=Int(floor(slalom_pathlength/dt)),dt,kwargs...)[3:4] for u in θ] |> unzip
+        constraints_satisfied = [all(c) for c in constraints_satisfied]
+        frac_satisfied = (constraints_satisfied |> mean |> scalar)
+        @show dt, frac_satisfied
+        if frac_satisfied > 0.8
+            break
+        else
+            dt /= sqrt(2)
+        end
+    end
+    flush(stdout)
+    return dt
+end
+
 function gmc(;
     constraints :: Array{Constraint},
     dt      = 2.0 ^ -10,
     num_slaloms = 8,
-    stepcount_per_slalom = 128,
+    slalom_pathlength = 0.125,
     effort_limit = 10^5
     )
 
+    stepcount_per_slalom = Int(floor(slalom_pathlength/dt))
     function gmc_step(cutoffs :: Array{<:Real}, u)
         u = ComplexF64.(u)
         dim = length(u)

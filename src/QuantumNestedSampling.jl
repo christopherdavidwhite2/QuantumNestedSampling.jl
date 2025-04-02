@@ -4,6 +4,7 @@ module QuantumNestedSampling
 using StaticArrays
 using LinearAlgebra
 using Random
+using Statistics
 
 
 include("util.jl")
