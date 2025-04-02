@@ -1,4 +1,4 @@
-export GOE
+export GOE,GREM,make_hamiltonian
 export sample_haar, sample_haar!
 export sample_haar_perp, sample_haar_perp!
 
@@ -47,4 +47,32 @@ function GOE(dim :: Int)
     H .-= tr(H)/dim
     H /= (2*sqrt(dim))
     return H
+end
+
+function GREM(dim :: Int) :: Diagonal{Float64,Vector{Float64}}
+    d = dim |> randn |> sort
+    offset = mean(d)
+    d .-= offset
+    return Diagonal(d)
+end
+
+function GREM_od(dim :: Int) 
+    d = dim |> randn |> sort
+    offset = mean(d)
+    d .-= offset
+    return SymTridiagonal(d, fill(0.1, dim-1))
+end
+
+# has to be a better way: this just feels dumb
+function make_hamiltonian(type :: Symbol, dim :: Int)
+    @assert dim >= 1
+    if type == :GOE
+        return GOE(dim)
+    elseif type == :GREM
+        return GREM(dim)
+    elseif type == :GREM_od
+        return GREM_od(dim)
+    else
+        error("Unknown Hamiltonian type $type")
+    end
 end
