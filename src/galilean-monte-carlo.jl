@@ -115,6 +115,8 @@ function slalom(;constraints :: Array{Constraint},
         stepcount += jog_stepcount
         if stepcount >= total_steps break end
 
+        #=
+        this was really dumb: of course the second time jog() returns you'll be outside the manifold! It very very rarely returns *in* the manifold!
         if !all(constraints_satisfied)
             if already_reflected_once break end
 
@@ -124,6 +126,7 @@ function slalom(;constraints :: Array{Constraint},
             println("sat: $constraints_satisfied")
             already_reflected_once = false
         end
+        =#
 
         for C in constraints[(!).(constraints_satisfied)]
             C.gradient_function(grad,u)
