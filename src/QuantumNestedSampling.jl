@@ -5,7 +5,7 @@ using StaticArrays
 using LinearAlgebra
 using Random
 using Statistics
-
+using ProgressMeter
 
 include("util.jl")
 include("hamiltonians-states.jl")
