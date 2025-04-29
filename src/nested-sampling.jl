@@ -1,5 +1,5 @@
 export nested_sampling
-export Xlinstep, Xlogstep, partition, heatcapacity, energy
+export Xlinstep, Xlogstep, partition, heatcapacity, energy, energy_variance
 
 function nested_sampling(EC :: Constraint, cutoffs :: Array{Float64}, θ :: Vector, resampler :: Function;steps :: Int=Int(1e3),verbose=false )
     nlive = length(θ)
@@ -58,8 +58,15 @@ end
 
 function heatcapacity(Estar , Z :: Function, E :: Function, nlive :: Int)
     w = Xlinstep.(nlive, 1:length(Estar))
-    β -> (sum(β^2 * w .* Estar.^2 .*exp.(-β*Estar)) / Z(β)) .- E(β)^2
+    β -> β^2*( (sum(w .* Estar.^2 .*exp.(-β*Estar)) / Z(β)) .- E(β)^2)
 end
+
+function energy_variance(Estar , Z :: Function, E :: Function, nlive :: Int)
+    w = Xlinstep.(nlive, 1:length(Estar))
+    β -> ( (sum(w .* Estar.^2 .*exp.(-β*Estar)) / Z(β)) .- E(β)^2)
+end
+
+
 
 #=
 function energyfunction(Estar, nlive)
