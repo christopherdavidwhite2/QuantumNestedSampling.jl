@@ -1,4 +1,4 @@
-export GOE,GREM,make_hamiltonian
+export GOE,GREM,ising_1d,make_hamiltonian
 export sample_haar, sample_haar!
 export sample_haar_perp, sample_haar_perp!
 
@@ -62,6 +62,30 @@ function GREM_od(dim :: Int)
     d .-= offset
     return SymTridiagonal(d, fill(0.1, dim-1))
 end
+ 
+# TODO sparse
+function ising_1d(dim; hz = 0.9045, hx = 1.4, pbc=true)
+    Lfloat = log(dim) / log(2)
+    @show Lfloat
+    @show Lfloat % 1
+    @assert min(Lfloat % 1, abs( (Lfloat - 1) % 1)) < 1e-10
+    L = Lfloat |> round |> Int
+    z = [1 0; 0 -1]
+    x = [0 1; 1 0]
+
+    X = tembed(x,L)
+    Z = tembed(z,L)
+    @show [size(xx) for xx in X]
+    @show [size(zz) for zz in Z]
+
+    H = sum(Z[j] * Z[j+1] for j = 1:L-1)
+    H += sum(hz * Z[j] for j = 1:L)
+    H += sum(hx * X[j] for j = 1:L)
+
+    if pbc H += Z[1]*Z[L] end
+
+    return H
+end
 
 # has to be a better way: this just feels dumb
 function make_hamiltonian(type :: Symbol, dim :: Int)
@@ -72,6 +96,8 @@ function make_hamiltonian(type :: Symbol, dim :: Int)
         return GREM(dim)
     elseif type == :GREM_od
         return GREM_od(dim)
+    elseif type == :ising_1d
+        return ising_1d(dim)
     else
         error("Unknown Hamiltonian type $type")
     end

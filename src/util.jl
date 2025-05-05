@@ -22,3 +22,4 @@ scalar(A) = (if length(A) != 1; error("scalar: argument has wrong length A = $A"
 unzip(A :: Array{Tuple{S,T}} where {T,S}) = ([a[1] for a in A], [a[2] for a in A])
 unzip(A :: Array{Tuple{R,S,T}} where {R,S,T}) = ([a[1] for a in A], [a[2] for a in A], [a[3] for a in A],)
 
+tembed(a, L) = [reduce(kron, cat([LinearAlgebra.I(2^(j-1))] , [a], [LinearAlgebra.I(2^(L-j))], dims=1)) for j in 1:L]
