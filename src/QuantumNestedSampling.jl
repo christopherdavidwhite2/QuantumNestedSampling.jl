@@ -2,6 +2,7 @@
 module QuantumNestedSampling
 
 using StaticArrays
+using SparseArrays
 using LinearAlgebra
 using Random
 using Statistics

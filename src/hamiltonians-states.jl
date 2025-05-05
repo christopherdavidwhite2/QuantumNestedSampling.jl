@@ -68,8 +68,8 @@ function ising_1d(dim; hz = 0.9045, hx = 1.4, pbc=true)
     Lfloat = log(dim) / log(2)
     @assert min(Lfloat % 1, abs( (Lfloat - 1) % 1)) < 1e-10
     L = Lfloat |> round |> Int
-    z = [1 0; 0 -1]
-    x = [0 1; 1 0]
+    z = [1 0; 0 -1] |> sparse
+    x = [0 1; 1 0] |> sparse
 
     X = tembed(x,L)
     Z = tembed(z,L)
