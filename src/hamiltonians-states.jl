@@ -66,8 +66,6 @@ end
 # TODO sparse
 function ising_1d(dim; hz = 0.9045, hx = 1.4, pbc=true)
     Lfloat = log(dim) / log(2)
-    @show Lfloat
-    @show Lfloat % 1
     @assert min(Lfloat % 1, abs( (Lfloat - 1) % 1)) < 1e-10
     L = Lfloat |> round |> Int
     z = [1 0; 0 -1]
@@ -75,8 +73,6 @@ function ising_1d(dim; hz = 0.9045, hx = 1.4, pbc=true)
 
     X = tembed(x,L)
     Z = tembed(z,L)
-    @show [size(xx) for xx in X]
-    @show [size(zz) for zz in Z]
 
     H = sum(Z[j] * Z[j+1] for j = 1:L-1)
     H += sum(hz * Z[j] for j = 1:L)
