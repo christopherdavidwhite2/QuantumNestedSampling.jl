@@ -17,7 +17,7 @@ function nested_sampling(EC :: Constraint, cutoffs :: Array{Float64}, θ :: Vect
         new_start = rand( setdiff(1:nlive, jstar) )
         θ[jstar] = resampler(Estar[i:i] ∪ cutoffs, θ[new_start] ) 
         E[jstar] = EC.constraint_function(θ[jstar])
-        end
+    end
 
     return Estar, θstar, θ
 end
