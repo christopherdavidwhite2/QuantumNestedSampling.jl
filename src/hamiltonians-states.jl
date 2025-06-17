@@ -139,6 +139,14 @@ function heisenberg_1d(dim,
     return H
 end
 
+function paramagnet(dim)
+    L = nqubit_from_dim(dim)
+    @assert L == length(hx)
+    z = [1 0; 0 -1] |> sparse
+    Z = tembed(z,L)
+    return - sum(Z)
+end
+
 # has to be a better way: this just feels dumb
 function make_hamiltonian(type :: Symbol, dim :: Int)
     @assert dim >= 1
@@ -148,6 +156,8 @@ function make_hamiltonian(type :: Symbol, dim :: Int)
         return GREM(dim)
     elseif type == :GREM_od
         return GREM_od(dim)
+    elseif type == :paramagnet
+        return paramagnet(dim)
     elseif type == :ising_1d
         return ising_1d(dim)
     elseif type == :heisenberg_1d
