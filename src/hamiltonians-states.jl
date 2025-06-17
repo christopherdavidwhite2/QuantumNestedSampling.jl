@@ -141,7 +141,6 @@ end
 
 function paramagnet(dim)
     L = nqubit_from_dim(dim)
-    @assert L == length(hx)
     z = [1 0; 0 -1] |> sparse
     Z = tembed(z,L)
     return - sum(Z)
