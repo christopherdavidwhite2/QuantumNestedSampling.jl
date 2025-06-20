@@ -1,5 +1,6 @@
 export nqubit_from_dim
 export GOE,GREM,ising_1d,heisenberg_1d,paramagnet,make_hamiltonian
+export heisenberg_1d_gs
 export sample_haar, sample_haar!
 export sample_haar_perp, sample_haar_perp!
 
@@ -137,6 +138,48 @@ function heisenberg_1d(dim,
     end
     
     return H
+end
+
+""" Analytical ground state projector for L = lg(dim)-site isotropic Heisenberg.
+If
+    ``` gs = heisenberg_1d_gs(2^L)
+    ```
+then `gs` is `(2^L, L+1)` and `gs[:,j]` has σz expectation value `j - 1 - L/2`
+
+It's tempting (for the sake of API consistency) to supply an analog for ising_1d,
+but that would require pulling in Arpack. (Could/should for paramagnet, I suppose.)
+"""
+function heisenberg_1d_gs(dim)
+    L = nqubit_from_dim(dim)
+
+    x = [0 1; 1 0] |> sparse
+    y = [0 -im; im 0] |> sparse
+
+    X = tembed(x,L)
+    Y = tembed(y,L)
+
+    totalX = sum(X)
+    totalY = sum(Y)
+
+    # deallocate when finished
+    # (I hope)
+    # (idk, maybe the compiler is smart enough to do this early anyways)
+    # (but I want to make sure)
+    x = nothing
+    y = nothing
+    totalSM = totalX - im*totalY
+
+    totalX = spzeros(dim,dim); GC.gc()
+    totalY = spzeros(dim,dim); GC.gc()
+
+    gs =zeros(2^L, L+1)
+    gs[1,1] = 1
+    for j = 2:L+1
+        gs[:,j] = totalSM * gs[:,j-1]
+        gs[:,j] /= norm(gs[:,j])
+    end
+
+    return gs
 end
 
 function paramagnet(dim)

@@ -36,3 +36,17 @@ end
         end
     end
 end
+
+
+@testitem "heisenberg_1d_gs" begin
+    using LinearAlgebra
+
+    for L = 2:4
+        H = 2^L |> heisenberg_1d
+        H += UniformScaling(L) # ground state energy
+        @test norm(gs'*gs - LinearAlgebra.I(L+1))
+        gs = 2^L |> heisenberg_1d_gs
+        @test norm(H*gs) < 1e-10
+    end
+
+end
