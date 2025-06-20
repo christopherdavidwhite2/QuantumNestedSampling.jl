@@ -94,7 +94,7 @@ function slalom(;constraints :: Array{Constraint},
         # This much abstraction is actually kind of a bad UI decision
         # but it's also maybe bad for performance
         # My guess is it's ok: just, like an extra pointer dereference or something
-        # so not bad compert to all the gemv's
+        # so not bad compared to all the gemv's
         # but maybe it'll get in the compiler's way?
         subspace_constraints = [SubspaceConstraint(C.subspace_constraint_function, C.subspace_data_reduction(C.data,u,v)) for C in constraints]
         u2e, v2e, jog_stepcount, constraints_satisfied = jog(subspace_constraint_functions = [c.subspace_constraint_function for c in subspace_constraints],
