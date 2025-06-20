@@ -29,6 +29,31 @@ function test_constraint_gradient(C :: Constraint, dim)
 end
 end
 
+@testitem "fast_adjoint_mul" begin
+    using LinearAlgebra
+
+    N = 4
+    Nr = 10
+    for T = [Float64, ComplexF64]
+        A = randn(T,N,N)
+        c = randn(T,N)
+        b = randn(T,N)
+        α = randn(T)
+        β = randn(T)
+
+        answer = α*A'*b + β*c
+        fast_adjoint_mul!(c,A,b,α,β)
+        @test norm(answer - c) < 1e-10
+
+
+        answer = A'*b 
+        fast_adjoint_mul!(c,A,b)
+        @test norm(answer - c) < 1e-10
+    end
+end
+
+
+
 @testitem "energy gradient via constraint structure" setup=[TestModule] begin
     using LinearAlgebra
 

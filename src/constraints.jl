@@ -1,5 +1,6 @@
 export energy
 export energy_gradient
+export fast_adjoint_mul!
 export Constraint
 export SubspaceConstraint
 export apply_cx_gradient
@@ -33,12 +34,35 @@ end
 
 effective(H, u,v) = SMatrix{2,2}([u'*H*u u'*H*v ; v'*H*u v'*H*v])
 
+"""
+    Quickly compute and overwrite
+        c = α A' b + β C .
+    Problem I'm trying to solve here is that some datastructures have faster left multiplication and some have faster right multiplication:
+     - `Array{2}`: `mul!(s',H,u')` is much faster than `mul(s,H,u)` because Julia's array memory layout makes columns contiguous
+     - SparseMatrixCSR is much faster to the right, and indeed ThreadedSparseCSR doesn't define `mul!()` with the adjoints that make Array{2} convenient.
+    So I need something that Does The Right Thing.
+
+    Question of adjoints is delicate.
+    I'm choosing to make this function Weird But Correct,
+    in the sense that it really does multiply by the adjoint.
+    That's a balance of two considerations:
+    1. In the applications I anticipate, A is Hermitian so it doesn't actually matter & multiplying by adjoint is simpler, but
+    2. I don't want to sweep that fact too far under the rug.
+
+    It's tempting to go ahead and define this for multithreaded sparse matrix multiplication here, but the state of that in Julia is parlous.
+    ThreadedSparseArrays.jl (https://github.com/jagot/ThreadedSparseArrays.jl) appeared not to give much speedup;
+    ThreadedSparseCSR.jl (https://github.com/BacAmorim/ThreadedSparseCSR.jl) did, but because it's unmaintained, getting it to install & compile is not so easy.
+    (I plan to go with ThreadedSparseCSR for my use.)
+"""
+fast_adjoint_mul!(c :: Vector, A :: AbstractMatrix, b :: Vector, α, β) = mul!(c', b',A,α',β')
+fast_adjoint_mul!(c :: Vector, A :: AbstractMatrix, b :: Vector)  = fast_adjoint_mul!(c, A,b,1,0)
+
 #assuming hermiticity would save me one inner product, but that doesn't seem worth it
 function fast_effective(H,u,v,s)
-    mul!(s',u',H)
+    fast_adjoint_mul!(s,H,u) # mul!(s',u',H)
     uHu = u'*s
     vHu = v'*s
-    mul!(s',v',H)
+    fast_adjoint_mul!(s,H,v) # mul!(s',v',H)
     uHv = u'*s
     vHv = v'*s
     return SMatrix{2,2}(uHu, vHu, uHv,vHv)
@@ -58,7 +82,7 @@ function energy(H)
     dim = size(H,1)
     Hu = zeros(ComplexF64, dim)
     function energy_inner(u)
-        mul!(Hu,H,u)
+        fast_adjoint_mul!(Hu,H,u)
         E = u'*Hu |> real
         return E 
     end
@@ -66,7 +90,7 @@ function energy(H)
 end
 
 function energy_gradient(H)
-    energy_gradient_inner!(grad, u) = mul!(grad', u',H)
+    energy_gradient_inner!(grad, u) = fast_adjoint_mul!(grad, H, u)
     return energy_gradient_inner!
 end
 
@@ -94,7 +118,7 @@ function fast_quart(H)
     s2 = zeros(ComplexF64, dim)
 
     function fast_quart_inner(u)
-        mul!(Hu,H,u)
+        fast_adjoint_mul!(Hu,H,u)
         E = u'*Hu
         HmEu!(s, H,u,E) # (H - E)u
         HmEu!(s2, H,s,E) # (H - E)^2 u
@@ -117,7 +141,7 @@ end
 
 function HmEu!(s, H,u,E)
     s .= u
-    mul!(s,H,u,1,-E)
+    fast_adjoint_mul!(s,H,u,1,-E)
 end
 
 function fast_gradquart(H)
@@ -128,7 +152,7 @@ function fast_gradquart(H)
     HmE3u = zeros(ComplexF64,dim)
 
     function gradquart_inner!(HmE4u, u)
-        mul!(Hu,H,u)
+        fast_adjoint_mul!(Hu,H,u)
         E = u'*Hu
 
         HmEu!(s,    H,u,    E) # (H-E)u
