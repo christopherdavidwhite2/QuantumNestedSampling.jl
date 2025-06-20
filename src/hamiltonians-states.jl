@@ -1,5 +1,5 @@
 export nqubit_from_dim
-export GOE,GREM,ising_1d,heisenberg_1d,make_hamiltonian
+export GOE,GREM,ising_1d,heisenberg_1d,paramagnet,make_hamiltonian
 export sample_haar, sample_haar!
 export sample_haar_perp, sample_haar_perp!
 
