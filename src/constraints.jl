@@ -99,7 +99,8 @@ function energy_constraint(H)
     gradient_function = energy_gradient(H) 
     subspace_constraint_function = (data,u) -> energy(data,u) 
     data = H
-    subspace_data_reduction = (H,u,v) -> effective(H,u,v) 
+    s = zeros(ComplexF64, size(H,1))
+    subspace_data_reduction = (H,u,v) -> fast_effective(H,u,v,s) 
     Constraint(constraint_function,gradient_function, subspace_constraint_function, data,subspace_data_reduction)
 end
 
