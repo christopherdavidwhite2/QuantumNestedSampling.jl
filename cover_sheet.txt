@@ -1,0 +1,5 @@
+Information Release Cover Sheet for Software:
+
+    Title: QuantumNestedSampling.jl: tools for sampling random quantum states
+
+    Distribution Statement A.  Approved for public release.  Distribution is unlimited.
