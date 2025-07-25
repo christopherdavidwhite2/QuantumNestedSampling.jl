@@ -1,6 +1,5 @@
 using TestItems
 using LinearAlgebra
-using Revise
 
 module QuantumNestedSampling
     asserting() = true
