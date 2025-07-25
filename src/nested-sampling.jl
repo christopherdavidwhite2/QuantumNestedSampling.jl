@@ -7,7 +7,7 @@ function nested_sampling(EC :: Constraint, cutoffs :: Array{Float64}, θ :: Vect
     Estar = zeros(steps)
     θstar = Array{eltype(θ)}(undef, steps)
 
-    @showprogress for i = 1:steps
+    @showprogress dt=10 for i = 1:steps
         jstar = argmax(E)
         Estar[i] = E[jstar]
         θstar[i] = θ[jstar]
