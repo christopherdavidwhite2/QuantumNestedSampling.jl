@@ -33,7 +33,7 @@ function nested_sampling(H; nlive = 32, steps = 100, resampler_kwargs...)
     return nested_sampling(EC,cutoffs,θ,resampler;steps)
 end
 
-function nested_sampling(H, Emin :: Float64;  nlive = 32, quiet=true, resampler_kwargs...)
+function nested_sampling(H, Emin :: Float64; callback :: Union{Nothing, Function} = nothing, nlive = 32, quiet=true, resampler_kwargs...)
     dim = size(H,1)
     @assert size(H,1) == size(H,2)
     cutoffs = Float64[]
@@ -49,8 +49,12 @@ function nested_sampling(H, Emin :: Float64;  nlive = 32, quiet=true, resampler_
         θstar = vcat(θstar, batch_θstar)
         if !quiet
             @show batch_Estar[end]
+            flush(stdout)
         end
 
+        if !isnothing(callback)
+            callback(Estar, θstar)
+        end
         if batch_Estar[end] <= Emin
             return Estar, θstar, θ
         end
