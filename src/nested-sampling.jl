@@ -1,7 +1,7 @@
 export nested_sampling
 export Xlinstep, Xlogstep, partition, heatcapacity, energy, energy_variance
 
-function nested_sampling(EC :: Constraint, cutoffs :: Array{Float64}, θ :: Vector, resampler :: Function;steps :: Int=Int(1e3),verbose=false )
+function nested_sampling(;EC :: Constraint, cutoffs :: Array{Float64}, θ :: Vector, resampler :: Function, steps :: Int=Int(1e3),verbose=false )
     nlive = length(θ)
     E = EC.constraint_function.(θ)
     Estar = zeros(steps)
@@ -30,7 +30,7 @@ function nested_sampling(H; nlive = 32, steps = 100, resampler_kwargs...)
 
     θ = [sample_haar(dim) for _ = 1:nlive]
     resampler = gmc(constraints = [EC];resampler_kwargs...)
-    return nested_sampling(EC,cutoffs,θ,resampler;steps)
+    return nested_sampling(;EC,cutoffs,θ,resampler,steps)
 end
 
 function nested_sampling(H, Emin :: Float64; callback :: Union{Nothing, Function} = nothing, nlive = 32, quiet=true, resampler_kwargs...)
@@ -44,7 +44,7 @@ function nested_sampling(H, Emin :: Float64; callback :: Union{Nothing, Function
     Estar = Float64[]
     θstar = Array{Complex{Float64}}[]
     while true
-        batch_Estar, batch_θstar, θ = nested_sampling(EC,cutoffs,θ,resampler;steps=100*nlive)
+        batch_Estar, batch_θstar, θ = nested_sampling(;EC,cutoffs,θ,resampler,steps=100*nlive)
         Estar = vcat(Estar, batch_Estar)
         θstar = vcat(θstar, batch_θstar)
         if !quiet
