@@ -46,7 +46,7 @@ end
 function GOE(dim :: Int) 
     H = randn(dim,dim)
     H += H'
-    H .-= tr(H)/dim
+    H -= LinearAlgebra.I * tr(H)/dim
     H /= (2*sqrt(dim))
     return H
 end
