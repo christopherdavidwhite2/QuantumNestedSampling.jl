@@ -51,6 +51,14 @@ function GOE(dim :: Int)
     return H
 end
 
+function GUE(dim :: Int) 
+    H = randn(ComplexF64, dim,dim)
+    H += H'
+    H -= LinearAlgebra.I * tr(H)/dim
+    H /= (2*sqrt(dim))
+    return H
+end
+
 function GREM(dim :: Int) :: Diagonal{Float64,Vector{Float64}}
     d = dim |> randn |> sort
     offset = mean(d)
